@@ -1,0 +1,58 @@
+version: "2"
+
+volumes:
+  gems:
+    driver: local
+  postgres-data:
+    driver: local
+
+services:
+  db:
+    image: postgres:9.5.3
+    ports:
+      - 5433:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - .:/backups
+    environment:
+      LC_ALL: C.UTF-8
+      POSTGRES_PASSWORD: 12341234
+
+  web: &app
+    build:
+      context: .
+      dockerfile: Dev.Dockerfile
+    command: foreman start
+    working_dir: /usr/src/app
+    volumes:
+      - .:/usr/src/app
+      - gems:/usr/local/bundle
+    ports:
+      - 3000:3000
+      - 8080:8080
+    stdin_open: true
+    tty: true
+    links:
+      - db
+    depends_on:
+      - db
+    environment: &app_env
+      DATABASE_URL: "postgres://postgres:12341234@db:5432/database_development"
+      RAILS_ENV: development
+      RACK_ENV: development
+    env_file:
+      - dev.env
+
+
+
+  test:
+    <<: *app
+    command: foreman start Procfile.test
+    environment:
+      DATABASE_URL: "postgis://postgres:12341234@db:5432/database_test"
+      RAILS_ENV: test
+      RACK_ENV: test
+    ports:
+      - 3000:3000
+    env_file:
+      - test.env
