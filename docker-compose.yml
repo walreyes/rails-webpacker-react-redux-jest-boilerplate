@@ -22,7 +22,7 @@ services:
     build:
       context: .
       dockerfile: Dev.Dockerfile
-    command: foreman start Procfile.dev
+    command: foreman start -f Procfile.dev
     working_dir: /usr/src/app
     volumes:
       - .:/usr/src/app
@@ -47,7 +47,7 @@ services:
 
   test:
     <<: *app
-    command: foreman start Procfile.test
+    command: foreman start -f Procfile.test
     environment:
       DATABASE_URL: "postgis://postgres:12341234@db:5432/database_test"
       RAILS_ENV: test
